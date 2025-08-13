@@ -2,7 +2,7 @@
 
 Cartridge::Cartridge(const std::string& sFileName){
     struct sHeader{
-        char name[5];
+        char name[4];
         uint8_t prg_rom_chunks;
         uint8_t chr_rom_chunks;
         uint8_t mapper1;
@@ -18,6 +18,8 @@ Cartridge::Cartridge(const std::string& sFileName){
     std::ifstream ifs;
 
     ifs.open(sFileName,std::ifstream::binary);
+
+    std::cout<<"File opened "<<sFileName<< " valid:"<<ifs.is_open()<<"\n";
 
     if(ifs.is_open()){
         ifs.read((char*)& header, sizeof(sHeader));
@@ -53,6 +55,12 @@ Cartridge::Cartridge(const std::string& sFileName){
                 pMapper = std::make_shared<Mapper_000>(nPRGBanks,nCHRBanks);
                 break;
         }
+
+        bImageValid = true;
+
+		ifs.close();
+
+        std::cout<<"DONE\n";
     }
 }
 
@@ -106,4 +114,12 @@ bool Cartridge::ppuWrite(uint16_t address, uint8_t data){
     }
 
     return 0;
+}
+
+void Cartridge::reset()
+{
+	// Note: This does not reset the ROM contents,
+	// but does reset the mapper.
+	if (pMapper != nullptr)
+		pMapper->reset();
 }

@@ -8,7 +8,8 @@ class Mapper_000: public Mapper{
     
     public:
         bool cpuMapRead(uint16_t address, uint32_t& mapper_addr) override;
-        bool cpuMapWrite(uint16_t address, uint32_t& mapper_addr) override;
+        bool cpuMapWrite(uint16_t address, uint32_t& mapper_addr, uint8_t data = 0) override;
         bool ppuMapRead(uint16_t address, uint32_t& mapper_addr) override;
         bool ppuMapWrite(uint16_t address, uint32_t& mapper_addr)  override;
+        void reset() override;
 };

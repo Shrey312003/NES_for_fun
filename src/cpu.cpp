@@ -40,7 +40,7 @@ void olc6502::write(uint16_t a, uint8_t d){
 
 void olc6502::reset(){
     addr_abs = 0xFFFC;
-    uint16_t lo = read(addr_abs);
+    uint16_t lo = read(addr_abs + 0);
     uint16_t hi = read(addr_abs+1);
 
     pc = (hi<<8) | lo;
@@ -67,7 +67,7 @@ void olc6502::irq(){
 
         setFlag(I,1);
         setFlag(U,1);
-        setFlag(B,1);
+        setFlag(B,0);
 
         write(0x0100 + stkp, status);
         stkp--;
@@ -246,10 +246,10 @@ uint8_t olc6502::IND(){
     uint16_t ptr = (ptr_hi<<8) | ptr_lo;
 
     if(ptr_lo == 0x00FF){
-        addr_abs = (read(ptr& 0xFF00) << 8) | (read(ptr));
+        addr_abs = (read(ptr& 0xFF00) << 8) | (read(ptr+0));
     }
     else{
-        addr_abs = (read(ptr + 1) << 8) | read(ptr);
+        addr_abs = (read(ptr + 1) << 8) | read(ptr+0);
     }
 
     return 0;
@@ -318,10 +318,10 @@ uint8_t olc6502::SBC(){
 
     temp = (uint16_t)a + value + (uint16_t)getFlag(C);
 
-    setFlag(C,temp>255);
+    setFlag(C,temp & 0xFF00);
     setFlag(Z,(temp & 0x00FF) == 0);
-    setFlag(V,(temp^value) & ((uint16_t)a^(uint16_t)temp) & 0x0080);
-    setFlag(N,temp & 0x80);
+    setFlag(V,(temp ^ (uint16_t)a) & (temp ^ value) & 0x0080);
+    setFlag(N,temp & 0x0080);
 
     a = temp & 0x00FF;
     return 1;
@@ -333,7 +333,7 @@ uint8_t olc6502::AND(){
     a = a & fetched;
 
     setFlag(Z, a==0);
-    setFlag(N,a & 0x0080);
+    setFlag(N,a & 0x80);
 
     return 1;
 }
@@ -344,8 +344,8 @@ uint8_t olc6502::ASL(){
     temp = (uint16_t)fetched << 1;
 
     setFlag(Z, (temp&0x00FF) == 0);
-    setFlag(C, (temp&0xFF00) != 0);
-    setFlag(N, (temp&0x0080));
+    setFlag(C, (temp&0xFF00) > 0);
+    setFlag(N, (temp&0x80));
 
     if(lookup[opcode].addrmode == &olc6502::IMP)
         a = temp & 0x00FF;
@@ -407,8 +407,8 @@ uint8_t olc6502::BIT(){
     temp = a & fetched;
 
     setFlag(Z, (temp & 0x00FF) == 0);
-    setFlag(V, (fetched >> 6)&1);
-    setFlag(N, (fetched >> 7)&1);
+    setFlag(N, fetched & (1 << 7));
+	setFlag(V, fetched & (1 << 6));
     
     return 0;
 }
@@ -549,7 +549,7 @@ uint8_t olc6502::CPX(){
     setFlag(C, x >= fetched);
     setFlag(N, temp&0x0080);
 
-    return 1;
+    return 0;
 }
 
 uint8_t olc6502::CPY(){
@@ -561,7 +561,7 @@ uint8_t olc6502::CPY(){
     setFlag(C, y >= fetched);
     setFlag(N, temp&0x0080);
 
-    return 1;
+    return 0;
 }
 
 uint8_t olc6502::DEC(){
@@ -580,8 +580,8 @@ uint8_t olc6502::DEC(){
 uint8_t olc6502::DEX(){
     x = x - 1;
 
-    setFlag(Z, (x&0x00FF) == 0);
-    setFlag(N, x&0x0080);
+    setFlag(Z, x == 0);
+    setFlag(N, x&0x80);
 
     return 0;
 }
@@ -589,8 +589,8 @@ uint8_t olc6502::DEX(){
 uint8_t olc6502::DEY(){
     y = y - 1;
 
-    setFlag(Z, (y&0x00FF) == 0);
-    setFlag(N, y&0x0080);
+    setFlag(Z, y == 0);
+    setFlag(N, y&0x80);
 
     return 0;
 }
@@ -621,8 +621,8 @@ uint8_t olc6502::INC(){
 uint8_t olc6502::INX(){
     x = x + 1;
 
-    setFlag(Z, (x&0x00FF) == 0);
-    setFlag(N, x&0x0080);
+    setFlag(Z, x == 0);
+    setFlag(N, x&0x80);
 
     return 0;
 }
@@ -630,8 +630,8 @@ uint8_t olc6502::INX(){
 uint8_t olc6502::INY(){
     y = y + 1;
 
-    setFlag(Z, (y&0x00FF) == 0);
-    setFlag(N, y&0x0080);
+    setFlag(Z, y == 0);
+    setFlag(N, y&0x80);
 
     return 0;
 }

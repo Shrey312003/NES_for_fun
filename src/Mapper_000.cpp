@@ -8,6 +8,11 @@ Mapper_000::~Mapper_000(){
 
 }
 
+void Mapper_000::reset()
+{
+
+}
+
 bool Mapper_000::cpuMapRead(uint16_t address, uint32_t& mapper_addr){
     if(address >= 0x8000 && address <= 0xFFFF){
         if(nPRGBanks > 1){
@@ -23,7 +28,7 @@ bool Mapper_000::cpuMapRead(uint16_t address, uint32_t& mapper_addr){
     return false;
 }
 
-bool Mapper_000::cpuMapWrite(uint16_t address, uint32_t& mapper_addr){
+bool Mapper_000::cpuMapWrite(uint16_t address, uint32_t& mapper_addr, uint8_t data){
     if(address >= 0x8000 && address <= 0xFFFF){
         if(nPRGBanks > 1){
             mapper_addr = address & 0x7FFF;
